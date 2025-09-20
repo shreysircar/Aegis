@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static const Color primary = Color(0xFFFF5757); // coral red (fixed alpha channel)
-  static const Color accent = Color(0xFF50E3C2);  // teal
-  static const Color background = Color(0xFFF4F7FB);
+  static const Color primary = Color(0xFFFF5A5F); // Coral red
+  static const Color accent = Color(0xFFFF7F81);  // Softer coral
+  static const Color background = Color(0xFFFDF5F5);
   static const Color textPrimary = Colors.black87;
   static const Color textSecondary = Colors.grey;
 }

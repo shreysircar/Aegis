@@ -30,6 +30,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true, // 👈 makes nav bar float over body
       body: _screens[_currentIndex],
       bottomNavigationBar: CustomBottomNavBar(
         currentIndex: _currentIndex,

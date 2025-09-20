@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_colors.dart';
 
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
@@ -9,13 +10,15 @@ class SplashScreen extends StatelessWidget {
       Navigator.pushReplacementNamed(context, '/login');
     });
 
-    return const Scaffold(
-      body: Center(
+    return Scaffold(
+      backgroundColor: AppColors.primary,
+      body: const Center(
         child: Text(
           "Aegis",
           style: TextStyle(
-            fontSize: 28,
+            fontSize: 32,
             fontWeight: FontWeight.bold,
+            color: Colors.white,
           ),
         ),
       ),
