@@ -24,3 +24,7 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  
+  # Assets should be placed here, not under dependencies
+  assets:
+    - assets/images/logo.png
