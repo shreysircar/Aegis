@@ -3,7 +3,7 @@ import '../../../../core/widgets/bottom_nav_bar.dart';
 import 'location_screen.dart';
 import 'search_screen.dart';
 import 'guide_screen.dart';
-
+import 'family_screen.dart';
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -16,7 +16,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final List<Widget> _screens = [
     const LocationScreen(),
-    const Center(child: Text("Blank")), // reserved
+    const FamilyScreen(), 
     const SearchScreen(),
     const GuideScreen(),
   ];
