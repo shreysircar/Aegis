@@ -10,7 +10,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  
+  latlong2: 0.9.1
+
   google_maps_flutter: ^2.13.1
   flutter_map_heatmap: ^0.0.8
   flutter_map: ^7.0.2  # Downgraded to be compatible with flutter_map_heatmap

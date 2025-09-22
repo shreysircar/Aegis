@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'profile_screen.dart';
 import '../../../../core/theme/app_colors.dart';
 
@@ -28,8 +30,40 @@ class LocationScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: const Center(
-        child: Text("Map/Heatmap will go here"),
+      body: SizedBox.expand(
+        child: Container(
+          color: Colors.grey[300], // ✅ Background color added here
+          child: FlutterMap(
+            mapController: MapController(),
+            options: const MapOptions(
+              initialCenter: LatLng(41.8781, -87.6298),
+              initialZoom: 12.0,
+              interactionOptions: InteractionOptions(flags: InteractiveFlag.all),
+            ),
+            children: [
+              TileLayer(
+                urlTemplate: 'https://{s}.tile.openstreetmap.de/{z}/{x}/{y}.png',
+                subdomains: ['a', 'b', 'c'],
+                userAgentPackageName: 'com.example.aegis',
+                tileSize: 128,
+                maxZoom: 18,
+                minZoom: 1,
+              ),
+              MarkerLayer(
+                markers: [
+                  Marker(
+                    point: LatLng(41.8781, -87.6298),
+                    child: const Icon(
+                      Icons.location_pin,
+                      color: Colors.red,
+                      size: 40,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
