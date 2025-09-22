@@ -31,38 +31,33 @@ class LocationScreen extends StatelessWidget {
         ],
       ),
       body: SizedBox.expand(
-        child: Container(
-          color: Colors.grey[300], // ✅ Background color added here
-          child: FlutterMap(
-            mapController: MapController(),
-            options: const MapOptions(
-              initialCenter: LatLng(41.8781, -87.6298),
-              initialZoom: 12.0,
-              interactionOptions: InteractionOptions(flags: InteractiveFlag.all),
-            ),
-            children: [
-              TileLayer(
-                urlTemplate: 'https://{s}.tile.openstreetmap.de/{z}/{x}/{y}.png',
-                subdomains: ['a', 'b', 'c'],
-                userAgentPackageName: 'com.example.aegis',
-                tileSize: 128,
-                maxZoom: 18,
-                minZoom: 1,
-              ),
-              MarkerLayer(
-                markers: [
-                  Marker(
-                    point: LatLng(41.8781, -87.6298),
-                    child: const Icon(
-                      Icons.location_pin,
-                      color: Colors.red,
-                      size: 40,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+        child: FlutterMap(
+          mapController: MapController(),
+          options: MapOptions(
+            initialCenter: LatLng(41.8781, -87.6298),
+            initialZoom: 12.0,
+            interactionOptions: const InteractionOptions(flags: InteractiveFlag.all),
           ),
+          children: [
+            TileLayer(
+              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+              userAgentPackageName: 'com.example.aegis',
+              maxZoom: 19,
+              minZoom: 1,
+            ),
+            MarkerLayer(
+              markers: [
+                Marker(
+                  point: LatLng(41.8781, -87.6298),
+                  child: const Icon(
+                    Icons.location_pin,
+                    color: Colors.red,
+                    size: 40,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
