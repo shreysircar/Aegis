@@ -15,7 +15,9 @@ dependencies:
   google_maps_flutter: ^2.13.1
   flutter_map_heatmap: ^0.0.8
   flutter_map: ^7.0.2  # Downgraded to be compatible with flutter_map_heatmap
-
+  http: ^1.2.0
+  shared_preferences: ^2.2.2
+  flutter_riverpod: ^3.0.0
   cupertino_icons: ^1.0.8
 
 dev_dependencies:

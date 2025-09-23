@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart'; // ✅ add this
 import 'core/theme/app_theme.dart';
 import 'routes/app_routes.dart';
 import 'features/splash/splash_screen.dart';
 
 void main() {
-  runApp(const AegisApp());
+  runApp(
+    const ProviderScope( // ✅ wrap app with ProviderScope
+      child: AegisApp(),
+    ),
+  );
 }
 
 class AegisApp extends StatelessWidget {

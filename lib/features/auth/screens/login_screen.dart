@@ -1,9 +1,20 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../providers/auth_provider.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
+
+  @override
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends ConsumerState<LoginScreen> {
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+  bool isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -11,7 +22,6 @@ class LoginScreen extends StatelessWidget {
       backgroundColor: AppColors.primary,
       body: Stack(
         children: [
-          // 🔹 Subtle background illustration (shield icon faded)
           Positioned(
             top: -50,
             right: -40,
@@ -21,8 +31,6 @@ class LoginScreen extends StatelessWidget {
               color: Colors.white.withOpacity(0.1),
             ),
           ),
-
-          // 🔹 Additional translucent shield icon
           Positioned(
             bottom: 100,
             left: -30,
@@ -35,7 +43,6 @@ class LoginScreen extends StatelessWidget {
               ),
             ),
           ),
-
           Center(
             child: SingleChildScrollView(
               child: Padding(
@@ -43,14 +50,11 @@ class LoginScreen extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // 🔹 Logo
                     Image.asset(
                       "assets/images/logo.png",
                       height: 90,
                     ),
                     const SizedBox(height: 12),
-
-                    // 🔹 Tagline
                     const Text(
                       "Stay Safe. Stay Informed.",
                       style: TextStyle(
@@ -60,8 +64,6 @@ class LoginScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 30),
-
-                    // 🔹 Glassmorphic Card
                     ClipRRect(
                       borderRadius: BorderRadius.circular(25),
                       child: BackdropFilter(
@@ -91,6 +93,7 @@ class LoginScreen extends StatelessWidget {
 
                               // Email field
                               TextField(
+                                controller: emailController,
                                 decoration: InputDecoration(
                                   filled: true,
                                   fillColor: Colors.white.withOpacity(0.15),
@@ -108,6 +111,7 @@ class LoginScreen extends StatelessWidget {
 
                               // Password field
                               TextField(
+                                controller: passwordController,
                                 obscureText: true,
                                 decoration: InputDecoration(
                                   filled: true,
@@ -124,7 +128,6 @@ class LoginScreen extends StatelessWidget {
                               ),
                               const SizedBox(height: 12),
 
-                              // Forgot Password
                               Align(
                                 alignment: Alignment.centerRight,
                                 child: TextButton(
@@ -137,25 +140,41 @@ class LoginScreen extends StatelessWidget {
                               ),
                               const SizedBox(height: 12),
 
-// Login Button inside LoginScreen
-                              ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.white,
-                                  foregroundColor: AppColors.primary,
-                                  minimumSize: const Size(double.infinity, 50),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                ),
-                                onPressed: () {
-                                  Navigator.pushReplacementNamed(context, '/home'); // Navigate to Home
-                                },
-                                child: const Text("Login"),
-                              ),
+                              // 🔹 Login Button with API integration
+                              isLoading
+                                  ? const CircularProgressIndicator()
+                                  : ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.white,
+                                        foregroundColor: AppColors.primary,
+                                        minimumSize: const Size(double.infinity, 50),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(16),
+                                        ),
+                                      ),
+                                      onPressed: () async {
+                                        setState(() => isLoading = true);
+                                        try {
+                                          final user = await ref.read(loginProvider({
+                                            'email': emailController.text,
+                                            'password': passwordController.text,
+                                          }).future);
+
+                                          // Navigate to HomeScreen
+                                          Navigator.pushReplacementNamed(context, '/home');
+                                        } catch (e) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(content: Text('Login failed: $e')),
+                                          );
+                                        } finally {
+                                          setState(() => isLoading = false);
+                                        }
+                                      },
+                                      child: const Text("Login"),
+                                    ),
 
                               const SizedBox(height: 16),
 
-                              // OR Divider
                               Row(
                                 children: [
                                   Expanded(child: Divider(color: Colors.white30)),
@@ -167,8 +186,6 @@ class LoginScreen extends StatelessWidget {
                                 ],
                               ),
                               const SizedBox(height: 16),
-
-                              // Social Login
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
@@ -178,8 +195,6 @@ class LoginScreen extends StatelessWidget {
                                 ],
                               ),
                               const SizedBox(height: 20),
-
-                              // Signup link
                               TextButton(
                                 onPressed: () {
                                   Navigator.pushNamed(context, '/signup');
@@ -204,7 +219,6 @@ class LoginScreen extends StatelessWidget {
     );
   }
 
-  // 🔹 Small reusable widget for social login button
   Widget _socialButton(IconData icon, String label) {
     return ElevatedButton.icon(
       style: ElevatedButton.styleFrom(
