@@ -136,8 +136,25 @@ class SignupScreen extends StatelessWidget {
                                 ),
                                 style: const TextStyle(color: Colors.white),
                               ),
-                              const SizedBox(height: 24),
+                              const SizedBox(height: 16),
 
+// Confirm Password field
+                              TextField(
+                                obscureText: true,
+                                decoration: InputDecoration(
+                                  filled: true,
+                                  fillColor: Colors.white.withOpacity(0.15),
+                                  hintText: "Confirm Password",
+                                  hintStyle: const TextStyle(color: Colors.white70),
+                                  prefixIcon: const Icon(Icons.lock_outline, color: Colors.white),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                ),
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                              const SizedBox(height: 16),
                               // 🔹 Sign Up Button inside SignupScreen
                               ElevatedButton(
                                 style: ElevatedButton.styleFrom(
@@ -174,7 +191,7 @@ class SignupScreen extends StatelessWidget {
                                 children: [
                                   _socialButton(Icons.g_mobiledata, "Google"),
                                   const SizedBox(width: 12),
-                                  _socialButton(Icons.apple, "Apple"),
+                                  _socialButton(Icons.code_outlined, "GitHub"),
                                 ],
                               ),
                               const SizedBox(height: 20),

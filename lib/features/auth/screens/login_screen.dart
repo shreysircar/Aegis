@@ -174,7 +174,7 @@ class LoginScreen extends StatelessWidget {
                                 children: [
                                   _socialButton(Icons.g_mobiledata, "Google"),
                                   const SizedBox(width: 12),
-                                  _socialButton(Icons.apple, "Apple"),
+                                  _socialButton(Icons.code_rounded, "GitHub"),
                                 ],
                               ),
                               const SizedBox(height: 20),
