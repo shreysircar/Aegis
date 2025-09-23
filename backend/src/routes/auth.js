@@ -5,6 +5,8 @@ import { pool } from "../db.js";
 
 
 const router = express.Router();
+// Temporary in-memory blacklist
+const tokenBlacklist = new Set();
 
 // Signup
 router.post("/signup", async (req, res) => {
@@ -50,6 +52,27 @@ router.get("/me", (req, res) => {
     res.json(decoded);
   } catch {
     res.status(401).json({ error: "Invalid token" });
+  }
+});
+
+// -------------------- SIGNOUT --------------------
+router.post("/signout", (req, res) => {
+  try {
+    const authHeader = req.headers["authorization"];
+    const token = authHeader?.split(" ")[1];
+
+    if (!token) {
+      return res.status(401).json({ error: "No token provided" });
+    }
+
+    console.log("Signout request with token:", token);
+
+    tokenBlacklist.add(token); // now works ✅
+    res.json({ message: "Signed out successfully ✅" });
+
+  } catch (err) {
+    console.error("Error in /signout:", err.stack);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
