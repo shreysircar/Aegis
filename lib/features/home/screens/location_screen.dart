@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -11,16 +13,42 @@ class LocationScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Location"),
+        title: const Text(
+          "Location",
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
+        ),
+        centerTitle: true,
+        backgroundColor: AppColors.primary,
+        elevation: 4, // subtle shadow for depth
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(20), // soft curved bottom
+          ),
+        ),
+        flexibleSpace: ClipRRect(
+          borderRadius: const BorderRadius.vertical(
+            bottom: Radius.circular(20),
+          ),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10), // subtle glass effect
+            child: Container(
+              color: AppColors.primary.withOpacity(0.8), // slightly translucent
+            ),
+          ),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications),
+            icon: const Icon(Icons.notifications, color: Colors.white),
             onPressed: () {
               // TODO: open notifications
             },
           ),
           IconButton(
-            icon: const Icon(Icons.account_circle),
+            icon: const Icon(Icons.account_circle, color: Colors.white),
             onPressed: () {
               Navigator.push(
                 context,
@@ -30,6 +58,7 @@ class LocationScreen extends StatelessWidget {
           ),
         ],
       ),
+
       body: SizedBox.expand(
         child: FlutterMap(
           mapController: MapController(),

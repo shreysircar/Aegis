@@ -51,11 +51,37 @@ class _FamilyScreenState extends State<FamilyScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: const Text("Family Tracking"),
-        backgroundColor: AppColors.primary,
-        elevation: 0,
-      ),
+        appBar: AppBar(
+          title: const Text(
+            "Family Tracking",
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+            ),
+          ),
+          backgroundColor: AppColors.primary,
+          elevation: 4, // subtle shadow for depth
+          centerTitle: true,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(
+              bottom: Radius.circular(20), // soft curved bottom
+            ),
+          ),
+          flexibleSpace: ClipRRect(
+            borderRadius: const BorderRadius.vertical(
+              bottom: Radius.circular(20),
+            ),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10), // subtle glass effect
+              child: Container(
+                color: AppColors.primary.withOpacity(0.8), // slightly translucent
+              ),
+            ),
+          ),
+
+        ),
+
       body: Stack(
         children: [
           SingleChildScrollView(
