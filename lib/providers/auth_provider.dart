@@ -13,19 +13,28 @@ final loginProvider =
     FutureProvider.family<UserModel, Map<String, String>>((ref, credentials) async {
   final authService = ref.read(authServiceProvider);
 
-  // 1. Call login → get token
-  final token = await authService.login(
-    credentials['email']!,
-    credentials['password']!,
-  );
+  try {
+    // 1. Call login → get token
+    final token = await authService.login(
+      credentials['email']!,
+      credentials['password']!,
+    );
 
-  // 2. Fetch user details with token
-  final user = await authService.getMe(token);
+    // 2. Fetch user details with token
+    final user = await authService.getMe(token);
 
-  // 3. Store user globally
-  ref.read(currentUserProvider.notifier).state = user;
+    // 3. Store user globally
+    ref.read(currentUserProvider.notifier).state = user;
 
-  return user;
+    return user;
+  } catch (e) {
+    // If login fails, throw a user-friendly message
+    if (e.toString().contains('401') || e.toString().contains('Invalid credentials')) {
+      throw Exception('Invalid email or password.');
+    }
+    // fallback for other errors
+    throw Exception('Login failed. ${e.toString()}');
+  }
 });
 
 /// Signup Provider → takes {fullname, email, password}, returns UserModel

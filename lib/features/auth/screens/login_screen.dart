@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -90,7 +91,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 ),
                               ),
                               const SizedBox(height: 25),
-
                               // Email field
                               TextField(
                                 controller: emailController,
@@ -108,7 +108,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 style: const TextStyle(color: Colors.white),
                               ),
                               const SizedBox(height: 16),
-
                               // Password field
                               TextField(
                                 controller: passwordController,
@@ -127,7 +126,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 style: const TextStyle(color: Colors.white),
                               ),
                               const SizedBox(height: 12),
-
                               Align(
                                 alignment: Alignment.centerRight,
                                 child: TextButton(
@@ -139,42 +137,76 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 ),
                               ),
                               const SizedBox(height: 12),
-
                               // 🔹 Login Button with API integration
                               isLoading
                                   ? const CircularProgressIndicator()
                                   : ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.white,
-                                        foregroundColor: AppColors.primary,
-                                        minimumSize: const Size(double.infinity, 50),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(16),
-                                        ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.white,
+                                  foregroundColor: AppColors.primary,
+                                  minimumSize: const Size(double.infinity, 50),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                ),
+                                onPressed: () async {
+                                  final email = emailController.text.trim();
+                                  final password = passwordController.text.trim();
+
+                                  if (email.isEmpty || password.isEmpty) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text("Please enter both email and password"),
                                       ),
-                                      onPressed: () async {
-                                        setState(() => isLoading = true);
-                                        try {
-                                          final user = await ref.read(loginProvider({
-                                            'email': emailController.text,
-                                            'password': passwordController.text,
-                                          }).future);
+                                    );
+                                    return;
+                                  }
 
-                                          // Navigate to HomeScreen
-                                          Navigator.pushReplacementNamed(context, '/home');
-                                        } catch (e) {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(content: Text('Login failed: $e')),
-                                          );
-                                        } finally {
-                                          setState(() => isLoading = false);
-                                        }
-                                      },
-                                      child: const Text("Login"),
-                                    ),
+                                  setState(() => isLoading = true);
 
+                                  try {
+                                    final user = await ref.read(
+                                      loginProvider({
+                                        'email': email,
+                                        'password': password,
+                                      }).future,
+                                    );
+
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text("Welcome back, ${user.fullname}!"),
+                                      ),
+                                    );
+
+                                    Navigator.pushReplacementNamed(context, '/home');
+                                  } catch (e) {
+                                    // Stop spinner immediately
+                                    setState(() => isLoading = false);
+
+                                    // Parse JSON error if returned by API
+                                    String errorMsg = "Login failed";
+                                    try {
+                                      final map = jsonDecode(e.toString());
+                                      if (map['error'] != null) {
+                                        errorMsg = map['error'];
+                                      }
+                                    } catch (_) {
+                                      // fallback to generic
+                                      errorMsg = e.toString().replaceAll('Exception: ', '');
+                                    }
+
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(errorMsg),
+                                      ),
+                                    );
+                                  } finally {
+                                    setState(() => isLoading = false);
+                                  }
+                                },
+                                child: const Text("Login"),
+                              ),
                               const SizedBox(height: 16),
-
                               Row(
                                 children: [
                                   Expanded(child: Divider(color: Colors.white30)),
