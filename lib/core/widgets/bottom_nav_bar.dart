@@ -17,7 +17,7 @@ class CustomBottomNavBar extends StatelessWidget {
       padding: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.primary, // 🔴 full red background
+          color: AppColors.primary,
           borderRadius: BorderRadius.circular(28),
           boxShadow: [
             BoxShadow(
@@ -31,10 +31,9 @@ class CustomBottomNavBar extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _buildNavItem(Icons.location_on, "Location", 0),
-            _buildNavItem(Icons.people_alt, "Family", 1),
+            _buildNavItem(Icons.location_on, "Heatmap", 0),
+            _buildNavItem(Icons.people_alt, "Stats", 1),
             _buildNavItem(Icons.search, "Search", 2),
-            _buildNavItem(Icons.menu_book, "Guide", 3),
           ],
         ),
       ),
@@ -51,7 +50,7 @@ class CustomBottomNavBar extends StatelessWidget {
         children: [
           Icon(
             icon,
-            color: isActive ? Colors.white : Colors.white70, // ⚪ active white, inactive faded
+            color: isActive ? Colors.white : Colors.white70,
             size: isActive ? 28 : 24,
           ),
           if (label.isNotEmpty)

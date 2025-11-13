@@ -1,93 +1,114 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
-import 'profile_screen.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../core/widgets/chicago_map.dart';
 
-class LocationScreen extends StatelessWidget {
-  const LocationScreen({super.key});
+class LocationScreen extends StatefulWidget {
+  const LocationScreen({Key? key}) : super(key: key);
+
+  @override
+  State<LocationScreen> createState() => _LocationScreenState();
+}
+
+class _LocationScreenState extends State<LocationScreen> {
+  Community? _selected;
+
+  void _onCommunityTap(Community c) {
+    setState(() => _selected = c);
+    // show bottom sheet with details
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => _buildDetailsSheet(c),
+    );
+  }
+
+  Widget _buildDetailsSheet(Community c) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Wrap(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Community ${c.areaNumber}',
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              Chip(
+                label: Text(
+                  c.safety != null
+                      ? 'Safety: ${c.safety!.toStringAsFixed(2)} / 10'
+                      : 'Loading...',
+                ),
+                backgroundColor: c.color.withOpacity(0.15),
+                avatar: Icon(Icons.shield, color: c.color),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            c.severity != null
+                ? 'Severity Score: ${c.severity!.toStringAsFixed(3)}'
+                : 'Fetching severity...',
+            style: const TextStyle(fontSize: 16),
+          ),
+          const SizedBox(height: 8),
+          if (c.safety != null)
+            Text(
+              _safetyDescription(c.safety!),
+              style: TextStyle(
+                color: c.color,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          const SizedBox(height: 16),
+          Align(
+            alignment: Alignment.centerRight,
+            child: ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Close'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Give a short human-readable label based on safety value
+  String _safetyDescription(double safety) {
+    if (safety >= 8) return "Very Safe ✅";
+    if (safety >= 7.8) return "Safe 🟢";
+    if (safety >= 7.5) return "Moderate ⚠️";
+    if (safety >= 6.5) return "Unsafe 🔶";
+    return "Very Unsafe 🔴";
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "Location",
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-          ),
-        ),
-        centerTitle: true,
-        backgroundColor: AppColors.primary,
-        elevation: 4, // subtle shadow for depth
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(20), // soft curved bottom
-          ),
-        ),
-        flexibleSpace: ClipRRect(
-          borderRadius: const BorderRadius.vertical(
-            bottom: Radius.circular(20),
-          ),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10), // subtle glass effect
-            child: Container(
-              color: AppColors.primary.withOpacity(0.8), // slightly translucent
+        title: const Text('Aegis — Heatzones'),
+      ),
+      body: Column(
+        children: [
+          Container(
+            height: 48,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            alignment: Alignment.centerLeft,
+            child: const Text(
+              'Heatzone Color Mapping: Green (Safe) → Red (Unsafe)',
+              style: TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications, color: Colors.white),
-            onPressed: () {
-              // TODO: open notifications
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.account_circle, color: Colors.white),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const ProfileScreen()),
-              );
-            },
+          Expanded(
+            child: ChicagoMap(
+              svgAssetPath: 'assets/images/chicago_communities.svg',
+              apiUrl: 'https://aegis-api-sszj.onrender.com/predict',
+              month: 7,
+              hour: 20,
+              year: 2022,
+              onCommunityTap: _onCommunityTap,
+            ),
           ),
         ],
-      ),
-
-      body: SizedBox.expand(
-        child: FlutterMap(
-          mapController: MapController(),
-          options: MapOptions(
-            initialCenter: LatLng(41.8781, -87.6298),
-            initialZoom: 12.0,
-            interactionOptions: const InteractionOptions(flags: InteractiveFlag.all),
-          ),
-          children: [
-            TileLayer(
-              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-              userAgentPackageName: 'com.example.aegis',
-              maxZoom: 19,
-              minZoom: 1,
-            ),
-            MarkerLayer(
-              markers: [
-                Marker(
-                  point: LatLng(41.8781, -87.6298),
-                  child: const Icon(
-                    Icons.location_pin,
-                    color: Colors.red,
-                    size: 40,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
       ),
     );
   }

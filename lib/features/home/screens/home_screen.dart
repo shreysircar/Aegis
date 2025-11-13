@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../../../core/widgets/bottom_nav_bar.dart';
 import 'location_screen.dart';
 import 'search_screen.dart';
-import 'guide_screen.dart';
 import 'family_screen.dart';
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,10 +14,9 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
   final List<Widget> _screens = [
-    const LocationScreen(),
+    LocationScreen(),
     const FamilyScreen(), 
     const SearchScreen(),
-    const GuideScreen(),
   ];
 
   void _onTap(int index) {
