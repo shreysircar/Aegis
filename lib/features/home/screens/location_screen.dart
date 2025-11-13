@@ -72,14 +72,17 @@ class _LocationScreenState extends State<LocationScreen> {
     );
   }
 
-  /// Give a short human-readable label based on safety value
+  /// Fine-grained human-readable label based on safety value (tight range 7–8)
   String _safetyDescription(double safety) {
-    if (safety >= 8) return "Very Safe ✅";
-    if (safety >= 7.8) return "Safe 🟢";
-    if (safety >= 7.5) return "Moderate ⚠️";
-    if (safety >= 6.5) return "Unsafe 🔶";
-    return "Very Unsafe 🔴";
+    if (safety >= 8.0) return "Extremely Safe 💚";
+    if (safety >= 7.9) return "Very Safe ✅";
+    if (safety >= 7.85) return "Safe 🟢";
+    if (safety >= 7.8) return "Moderately Safe ⚠️";
+    if (safety >= 7.75) return "Slightly Unsafe 🔶";
+    if (safety >= 7.7) return "Unsafe 🔴";
+    return "Very Unsafe 🚨";
   }
+
 
   @override
   Widget build(BuildContext context) {

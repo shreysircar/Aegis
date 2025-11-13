@@ -317,21 +317,24 @@ class _ChicagoMapState extends State<ChicagoMap> with TickerProviderStateMixin {
 
   /// Color mapping: safety 0 (unsafe) -> red; safety 10 (safe) -> green
   Color _safetyToColor(double safety) {
-    // linear t in 0..1
-    double t = (safety / 10.0).clamp(0.0, 1.0);
+    // Rescale tight range 7..8 to 0..1
+    const double minSafe = 7.0;
+    const double maxSafe = 8.0;
+    double t = ((safety - minSafe) / (maxSafe - minSafe)).clamp(0.0, 1.0);
 
-    // --- aggressive sigmoid/stretch for tight ranges around 0.7–0.9 (safety 7–9) ---
-    const double k = 20.0;      // increase contrast
-    const double center = 0.75; // around safety = 7.5
+    // Adjusted sigmoid for contrast
+    const double k = 10.0; // milder slope than 20
+    const double center = 0.5; // center of 0..1 after rescaling
     t = 1 / (1 + exp(-k * (t - center)));
 
-    // interpolate HSV hue: 0 (red) → 120 (green)
+    // HSV hue: 0 (red) → 120 (green)
     final hue = t * 120.0;
 
-    // vivid colors
+    // full vivid colors
     final hsv = HSVColor.fromAHSV(1.0, hue, 0.85, 0.85);
     return hsv.toColor();
   }
+
 
 
 
