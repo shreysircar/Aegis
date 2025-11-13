@@ -78,6 +78,20 @@ class _ChicagoMapState extends State<ChicagoMap> with TickerProviderStateMixin {
   }
 
   @override
+  void didUpdateWidget(covariant ChicagoMap oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // Check if any of the inputs changed (month/hour/year)
+    if (oldWidget.month != widget.month ||
+        oldWidget.hour != widget.hour ||
+        oldWidget.year != widget.year) {
+      debugPrint('🔄 Inputs changed: Month=${widget.month}, Hour=${widget.hour}, Year=${widget.year}');
+      _fetchSeverityForAll();
+    }
+  }
+
+
+  @override
   void dispose() {
     _animationController?.dispose();
     _transformationController.dispose();
@@ -426,7 +440,8 @@ class _ChicagoMapState extends State<ChicagoMap> with TickerProviderStateMixin {
     }
 
     // Build a CustomPaint that draws all communities using their Paths
-    final painter = _SvgMapPainter(communities: _communities);
+    final painter = _SvgMapPainter(communities: List.from(_communities));
+
 
     // We'll wrap in GestureDetector to get taps and in InteractiveViewer for pan/zoom
     return LayoutBuilder(builder: (context, constraints) {
@@ -487,5 +502,16 @@ class _SvgMapPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _SvgMapPainter oldDelegate) => true;
+  @override
+  bool shouldRepaint(covariant _SvgMapPainter oldDelegate) {
+    // Repaint if color data changed
+    if (oldDelegate.communities.length != communities.length) return true;
+    for (int i = 0; i < communities.length; i++) {
+      if (oldDelegate.communities[i].color != communities[i].color) {
+        return true;
+      }
+    }
+    return false;
+  }
+
 }
