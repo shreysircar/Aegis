@@ -46,6 +46,28 @@ class _SearchScreenState extends State<SearchScreen> {
   Color _colorA = Colors.grey.shade400;
   Color _colorB = Colors.grey.shade400;
 
+
+  Widget _smallStat(String label, String value, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        color: color.withOpacity(0.08),
+      ),
+      child: Column(
+        children: [
+          Text(label, style: const TextStyle(fontSize: 12)),
+          const SizedBox(height: 6),
+          Text(value,
+              style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: color)),
+        ],
+      ),
+    );
+  }
+
   final String apiUrl = 'https://aegis-api-sszj.onrender.com/predict';
 
   @override
@@ -186,8 +208,9 @@ class _SearchScreenState extends State<SearchScreen> {
 
   List<DropdownMenuItem<int>> _areaItems() {
     return List.generate(77, (i) => i + 1)
-        .map((e) => DropdownMenuItem(value: e, child: Text("$e")))
+        .map((e) => DropdownMenuItem<int>(value: e, child: Text("$e")))
         .toList();
+
   }
 
   // ===================== UI CARD ======================
@@ -420,9 +443,78 @@ class _SearchScreenState extends State<SearchScreen> {
           Expanded(
             child: SingleChildScrollView(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 child: Column(
                   children: [
+                    // ================= REAL-TIME COMPARISON SECTION =================
+                    Card(
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              "Real-Time Safety Comparison",
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                            ),
+                            const SizedBox(height: 8),
+
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _smallStat(
+                                    "Safety A (now)",
+                                    _safetyA?.toStringAsFixed(2) ?? "—",
+                                    _colorA,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: _smallStat(
+                                    "Safety B (now)",
+                                    _safetyB?.toStringAsFixed(2) ?? "—",
+                                    _colorB,
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 8),
+
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _smallStat(
+                                    "Severity A (now)",
+                                    _severityA?.toStringAsFixed(3) ?? "—",
+                                    _colorA,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: _smallStat(
+                                    "Severity B (now)",
+                                    _severityB?.toStringAsFixed(3) ?? "—",
+                                    _colorB,
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 10),
+                            Text(
+                              "Using real-time inputs → Month: $_month, Hour: $_hour, Year: $_year",
+                              style: const TextStyle(fontSize: 12, color: Colors.black54),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+// ================= END REAL-TIME SECTION =================
+
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
