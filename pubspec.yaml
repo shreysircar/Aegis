@@ -37,3 +37,4 @@ flutter:
   assets:
     - assets/images/logo.png
     - assets/images/chicago_communities.svg
+    - assets/data/chicago_stats.csv
