@@ -214,7 +214,6 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   // ===================== UI CARD ======================
-
   Widget _buildAreaPanel({
     required String title,
     required int area,
@@ -229,8 +228,6 @@ class _SearchScreenState extends State<SearchScreen> {
     required void Function(int?) onYearChanged,
     required void Function(int?) onMonthChanged,
   }) {
-    final arrests = _dummyRecentArrests();
-
     final years = CSVInsightsService.getYearsForCommunity(area);
     final months =
     selectedYear != null ? CSVInsightsService.getMonthsForCommunity(area, selectedYear) : [];
@@ -284,7 +281,6 @@ class _SearchScreenState extends State<SearchScreen> {
                     value: selectedMonth,
                     items: months
                         .map((y) => DropdownMenuItem<int>(value: y, child: Text("$y")))
-
                         .toList(),
                     onChanged: onMonthChanged,
                     decoration: const InputDecoration(
@@ -311,10 +307,6 @@ class _SearchScreenState extends State<SearchScreen> {
                   style: TextStyle(fontWeight: FontWeight.w700, color: color),
                 ),
                 const SizedBox(height: 12),
-                const Text("Recent arrests:"),
-                const SizedBox(height: 4),
-                SizedBox(height: 60, child: _buildMiniBarChart(arrests, color)),
-                const SizedBox(height: 12),
 
                 // ================= CSV RESULTS =================
                 if (csv != null) ...[
@@ -329,6 +321,7 @@ class _SearchScreenState extends State<SearchScreen> {
       ),
     );
   }
+
 
   Widget _buildMiniBarChart(List<int> values, Color color) {
     final maxV = values.reduce(max).toDouble();

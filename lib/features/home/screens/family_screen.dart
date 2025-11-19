@@ -1,339 +1,205 @@
-import 'dart:ui';
+// family_screen.dart
+import 'dart:async';
+import 'dart:convert';
+import 'dart:math';
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_colors.dart';
+import 'package:http/http.dart' as http;
+import '../../../core/widgets/chicago_map.dart'; // keeps types consistent with your app
 
 class FamilyScreen extends StatefulWidget {
-  const FamilyScreen({super.key});
+  const FamilyScreen({Key? key}) : super(key: key);
 
   @override
   State<FamilyScreen> createState() => _FamilyScreenState();
 }
 
-class _FamilyScreenState extends State<FamilyScreen> {
-  final List<Map<String, dynamic>> familyMembers = [
-    {
-      "name": "Sarah Johnson",
-      "relation": "Spouse",
-      "phone": "+1 (555) 123-4567",
-      "status": "Safe",
-      "location": "Millennium Park, Chicago",
-      "time": "5 min ago",
-      "emergency": true,
-    },
-    {
-      "name": "Mike Johnson",
-      "relation": "Son",
-      "phone": "+1 (555) 987-6543",
-      "status": "Safe",
-      "location": "University of Chicago",
-      "time": "1 hr ago",
-      "emergency": false,
-    },
-    {
-      "name": "Emma Johnson",
-      "relation": "Daughter",
-      "phone": "+1 (555) 456-7890",
-      "status": "Caution",
-      "location": "Lincoln Park High School",
-      "time": "2 hr ago",
-      "emergency": false,
-    },
-  ];
+class _AreaRow {
+  final int area;
+  final double severity;
+  final double safety;
+  final Color color;
 
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController relationController = TextEditingController();
-  final TextEditingController phoneController = TextEditingController();
-  final TextEditingController locationController = TextEditingController();
-  String status = "Safe";
-  bool emergency = false;
+  _AreaRow({
+    required this.area,
+    required this.severity,
+    required this.safety,
+    required this.color,
+  });
+}
+
+class _FamilyScreenState extends State<FamilyScreen> {
+  int _month = 7;
+  int _hour = 20;
+  int _year = 2022;
+
+  final String apiUrl = 'https://aegis-api-sszj.onrender.com/predict';
+
+  bool _loading = false;
+  String? _error;
+  List<_AreaRow> _rows = [];
+
+  Timer? _debounceTimer;
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-        appBar: AppBar(
-          title: const Text(
-            "Family Tracking",
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 20,
-            ),
-          ),
-          backgroundColor: AppColors.primary,
-          elevation: 4, // subtle shadow for depth
-          centerTitle: true,
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(
-              bottom: Radius.circular(20), // soft curved bottom
-            ),
-          ),
-          flexibleSpace: ClipRRect(
-            borderRadius: const BorderRadius.vertical(
-              bottom: Radius.circular(20),
-            ),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10), // subtle glass effect
-              child: Container(
-                color: AppColors.primary.withOpacity(0.8), // slightly translucent
-              ),
-            ),
-          ),
-
-        ),
-
-      body: Stack(
-        children: [
-          SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                GridView.count(
-                  crossAxisCount: 2,
-                  shrinkWrap: true,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  physics: const NeverScrollableScrollPhysics(),
-                  children: [
-                    _statCard("Safe", familyMembers.where((m) => m["status"] == "Safe").length.toString(), Colors.green, Icons.shield_outlined),
-                    _statCard("Caution", familyMembers.where((m) => m["status"] != "Safe").length.toString(), Colors.orange, Icons.warning_amber_outlined),
-                    _statCard("Total Members", familyMembers.length.toString(), AppColors.primary, Icons.group_outlined),
-                    _statCard("Emergency Contacts", familyMembers.where((m) => m["emergency"] == true).length.toString(), Colors.pink, Icons.phone_in_talk_outlined),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                Text("Family Members", style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: 12),
-                Column(
-                  children: familyMembers.map((m) => _familyCard(m)).toList(),
-                ),
-                const SizedBox(height: 80), // Extra space so last card isn't covered by FAB
-              ],
-            ),
-          ),
-
-          // FAB positioned above content
-          Positioned(
-            bottom: 16,
-            right: 16,
-            child: FloatingActionButton.extended(
-              onPressed: () => _showAddMemberSheet(context),
-              backgroundColor: AppColors.primary,
-              icon: const Icon(Icons.person_add_alt_1, color: Colors.white),
-              label: const Text("Add Member", style: TextStyle(color: Colors.white)),
-            ),
-          ),
-        ],
-      ),
-    );
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    _month = now.month;
+    _hour = now.hour;
+    _year = now.year;
+    _refreshLeaderboard();
   }
 
-  Widget _statCard(String label, String count, Color color, IconData icon) {
-    return Container(
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.2),
-            blurRadius: 6,
-            offset: const Offset(2, 2),
-          )
-        ],
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: color, size: 28),
-          const SizedBox(height: 6),
-          Text(
-            count,
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 13, color: Colors.black87),
-          ),
-        ],
-      ),
-    );
+  @override
+  void dispose() {
+    _debounceTimer?.cancel();
+    super.dispose();
   }
 
-  Widget _familyCard(Map<String, dynamic> member) {
-    final isSafe = member["status"] == "Safe";
-    final statusColor = isSafe ? Colors.green : Colors.orange;
+  double _severityToSafety(double sev) {
+    const double sMin = 0.7;
+    const double sMax = 33.5167;
 
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 8,
-            offset: const Offset(2, 2),
-          )
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: 28,
-              backgroundColor: AppColors.primary.withOpacity(0.8),
-              child: Text(
-                member["name"].toString()[0],
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        member["name"],
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      if (member["emergency"] == true)
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.pink.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Text(
-                            "Emergency",
-                            style: TextStyle(color: Colors.pink, fontSize: 12),
-                          ),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(member["relation"], style: const TextStyle(color: Colors.black54)),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      Icon(Icons.phone, size: 16, color: Colors.grey.shade600),
-                      const SizedBox(width: 6),
-                      Text(member["phone"]),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: statusColor.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(member["status"], style: TextStyle(color: statusColor, fontWeight: FontWeight.w600)),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          member["location"],
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(color: Colors.black87),
-                        ),
-                      ),
-                    ],
-                  ),
-                  Text(member["time"], style: const TextStyle(color: Colors.black54, fontSize: 12)),
-                ],
-              ),
-            ),
-          ],
+    double safety;
+    if (sMax > sMin) {
+      final scaled = (sev - sMin) / (sMax - sMin);
+      safety = 10.0 * (1.0 - scaled);
+    } else {
+      safety = 10.0 - sev;
+    }
+    return safety.clamp(0.0, 10.0);
+  }
+
+  Color _safetyToColor(double safety) {
+    const double minSafe = 7.0;
+    const double maxSafe = 8.0;
+    double t = ((safety - minSafe) / (maxSafe - minSafe)).clamp(0.0, 1.0);
+
+    const double k = 10.0;
+    const double center = 0.5;
+    t = 1 / (1 + exp(-k * (t - center)));
+
+    final hue = t * 120.0;
+    final hsv = HSVColor.fromAHSV(1.0, hue, 0.85, 0.85);
+    return hsv.toColor();
+  }
+
+  Future<double> _fetchSeverity(int communityArea, int month, int hour, int year) async {
+    final body = json.encode({
+      "Community_Area": communityArea,
+      "Month": month,
+      "Hour": hour,
+      "Year": year,
+    });
+
+    final resp = await http
+        .post(Uri.parse(apiUrl), headers: {'Content-Type': 'application/json'}, body: body)
+        .timeout(const Duration(seconds: 10));
+
+    if (resp.statusCode == 200) {
+      final data = json.decode(resp.body);
+      final severity = (data['severity_score'] is num)
+          ? (data['severity_score'] as num).toDouble()
+          : double.tryParse('${data['severity_score']}') ?? 0.0;
+      return severity;
+    } else {
+      throw Exception('API ${resp.statusCode}: ${resp.body}');
+    }
+  }
+
+  Future<void> _buildLeaderboard() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    try {
+      final List<_AreaRow> tmp = [];
+
+      for (int area = 1; area <= 77; area++) {
+        try {
+          final sev = await _fetchSeverity(area, _month, _hour, _year);
+          final safety = _severityToSafety(sev);
+          final color = _safetyToColor(safety);
+          tmp.add(_AreaRow(area: area, severity: sev, safety: safety, color: color));
+        } catch (e) {
+          debugPrint('Failed fetching area $area: $e');
+        }
+        await Future.delayed(const Duration(milliseconds: 80));
+      }
+
+      tmp.sort((a, b) => b.safety.compareTo(a.safety));
+
+      setState(() {
+        _rows = tmp;
+      });
+    } catch (e) {
+      setState(() => _error = e.toString());
+    } finally {
+      setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _refreshLeaderboard() async {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 300), () {
+      _buildLeaderboard();
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // FIXED SAFETY SCORE WIDGET (NO MORE 4px OVERFLOW)
+  // ---------------------------------------------------------------------------
+
+  Widget _buildRow(int idx, _AreaRow r) {
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      leading: CircleAvatar(
+        radius: 20,
+        backgroundColor: r.color,
+        child: Text(
+          '${idx + 1}',
+          style: TextStyle(
+            color: r.color.darkenIfNeeded(),
+            fontWeight: FontWeight.w800,
+          ),
         ),
       ),
-    );
-  }
-
-  void _showAddMemberSheet(BuildContext context) {
-    nameController.clear();
-    relationController.clear();
-    phoneController.clear();
-    locationController.clear();
-    status = "Safe";
-    emergency = false;
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      title: Text(
+        'Community ${r.area}',
+        style: const TextStyle(fontWeight: FontWeight.w700),
       ),
-      builder: (context) => Padding(
-        padding: EdgeInsets.only(left: 16, right: 16, top: 24, bottom: MediaQuery.of(context).viewInsets.bottom + 16),
-        child: SingleChildScrollView(
+      subtitle: Text('Severity: ${r.severity.toStringAsFixed(3)}'),
+
+      // 🔥 FIX APPLIED HERE
+      trailing: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4), // reduced vertical padding
+        decoration: BoxDecoration(
+          color: r.color.withOpacity(0.12),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: r.color.withOpacity(0.22)),
+        ),
+
+        // prevents overflow forever
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Text("Add Family Member", style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 16),
-              TextField(controller: nameController, decoration: const InputDecoration(labelText: "Name")),
-              const SizedBox(height: 12),
-              TextField(controller: relationController, decoration: const InputDecoration(labelText: "Relation")),
-              const SizedBox(height: 12),
-              TextField(controller: phoneController, decoration: const InputDecoration(labelText: "Phone")),
-              const SizedBox(height: 12),
-              TextField(controller: locationController, decoration: const InputDecoration(labelText: "Location")),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                value: status,
-                items: ["Safe", "Caution"].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
-                onChanged: (val) => setState(() => status = val!),
-                decoration: const InputDecoration(labelText: "Status"),
+              Text(
+                '${r.safety.toStringAsFixed(2)} / 10',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: r.color,
+                  fontSize: 14,
+                ),
               ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  const Text("Emergency"),
-                  Switch(value: emergency, onChanged: (val) => setState(() => emergency = val)),
-                ],
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      familyMembers.add({
-                        "name": nameController.text,
-                        "relation": relationController.text,
-                        "phone": phoneController.text,
-                        "status": status,
-                        "location": locationController.text,
-                        "time": "Just now",
-                        "emergency": emergency,
-                      });
-                    });
-                    Navigator.pop(context);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: const Text("Add Member"),
+              const SizedBox(height: 2),
+              Text(
+                _safetyLabel(r.safety),
+                style: TextStyle(
+                  fontSize: 11,
+                  color: r.color.darkenIfNeeded(),
                 ),
               ),
             ],
@@ -341,5 +207,193 @@ class _FamilyScreenState extends State<FamilyScreen> {
         ),
       ),
     );
+  }
+
+  String _safetyLabel(double safety) {
+    if (safety >= 8.1) return "Extremely Safe";
+    if (safety >= 7.9) return "Very Safe";
+    if (safety >= 7.8) return "Safe";
+    if (safety >= 7.6) return "Moderately Safe";
+    if (safety >= 7.4) return "Slightly Unsafe";
+    if (safety >= 7.2) return "Unsafe";
+    return "Very Unsafe";
+  }
+
+  // ---------------------------------------------------------------------------
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Aegis — Leaderboard'),
+      ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Color(0xFFF8F9FA),
+              Color(0xFFF3F4F6),
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              // Controls
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: InputDecorator(
+                            decoration: const InputDecoration(
+                              labelText: 'Month',
+                              border: OutlineInputBorder(),
+                            ),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<int>(
+                                value: _month,
+                                isExpanded: true,
+                                items: List.generate(12, (i) => i + 1)
+                                    .map((m) => DropdownMenuItem(value: m, child: Text('$m')))
+                                    .toList(),
+                                onChanged: (val) {
+                                  setState(() => _month = val ?? _month);
+                                  _refreshLeaderboard();
+                                },
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(width: 8),
+
+                        Expanded(
+                          flex: 2,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Hour', style: TextStyle(fontWeight: FontWeight.w600)),
+                              Slider(
+                                value: _hour.toDouble(),
+                                min: 0,
+                                max: 23,
+                                divisions: 23,
+                                label: '$_hour',
+                                onChanged: (val) {
+                                  setState(() => _hour = val.toInt());
+                                  _refreshLeaderboard();
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(width: 8),
+
+                        Expanded(
+                          child: InputDecorator(
+                            decoration: const InputDecoration(
+                              labelText: 'Year',
+                              border: OutlineInputBorder(),
+                            ),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<int>(
+                                value: _year,
+                                isExpanded: true,
+                                items: List.generate(DateTime.now().year + 10 - 2013 + 1,
+                                        (i) => 2013 + i)
+                                    .map((y) => DropdownMenuItem(value: y, child: Text('$y')))
+                                    .toList(),
+                                onChanged: (val) {
+                                  setState(() => _year = val ?? _year);
+                                  _refreshLeaderboard();
+                                },
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(width: 8),
+
+                        IconButton(
+                          onPressed: _buildLeaderboard,
+                          icon: const Icon(Icons.refresh),
+                          tooltip: 'Refresh leaderboard',
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Showing leaderboard for Month: $_month  Hour: $_hour  Year: $_year',
+                        style: const TextStyle(fontSize: 13, color: Colors.black54),
+                      ),
+                    ),
+                    if (_loading)
+                      const SizedBox(
+                          height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                    else
+                      Text('${_rows.length} areas', style: const TextStyle(color: Colors.black54)),
+                  ],
+                ),
+              ),
+
+              SizedBox(
+                height: 600,
+                child: RefreshIndicator(
+                  onRefresh: _buildLeaderboard,
+                  child: _loading && _rows.isEmpty
+                      ? const Center(child: CircularProgressIndicator())
+                      : _error != null
+                      ? ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Text(
+                          'Error: $_error',
+                          style: const TextStyle(color: Colors.red),
+                        ),
+                      )
+                    ],
+                  )
+                      : ListView.separated(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    itemCount: _rows.length,
+                    separatorBuilder: (_, __) => const Divider(height: 1),
+                    itemBuilder: (context, index) =>
+                        _buildRow(index, _rows[index]),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+extension _ColorReadability on Color {
+  Color darkenIfNeeded() {
+    final luma = (0.299 * red + 0.587 * green + 0.114 * blue) / 255;
+    return luma > 0.6 ? Colors.black87 : Colors.black;
   }
 }
