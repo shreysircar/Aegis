@@ -1,9 +1,3 @@
-Here’s an upgraded version of the **README** with clean GitHub-style badges added at the top. I'll keep them relevant to your tech stack—Flutter, FastAPI, XGBoost, PostgreSQL, and platform status.
-
-You can paste directly into `README.md`.
-
----
-
 ## **📍 Aegis — Predictive Crime Safety Mobile App (Flutter)**
 
 ### **Badges**
