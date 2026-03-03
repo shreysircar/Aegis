@@ -14,24 +14,33 @@ class _SplashScreenState extends State<SplashScreen>
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
   late Animation<double> _fadeAnimation;
+  late Animation<double> _floatAnimation;
 
   @override
   void initState() {
     super.initState();
 
-    // Navigate to login after 5 seconds
+    // Navigate to login after 5 seconds (UNCHANGED)
     Timer(const Duration(seconds: 5), () {
       Navigator.pushReplacementNamed(context, '/login');
     });
 
-    // Animation for logo and text
+    // Increased duration to 3 seconds (smoother feel)
     _controller =
-        AnimationController(vsync: this, duration: const Duration(seconds: 2));
+        AnimationController(vsync: this, duration: const Duration(seconds: 3));
 
-    _scaleAnimation = CurvedAnimation(parent: _controller, curve: Curves.easeOutBack);
-    _fadeAnimation = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
+    _scaleAnimation =
+        CurvedAnimation(parent: _controller, curve: Curves.easeOutBack);
 
-    _controller.forward();
+    _fadeAnimation =
+        CurvedAnimation(parent: _controller, curve: Curves.easeIn);
+
+    // Subtle floating animation for background shields
+    _floatAnimation = Tween<double>(begin: -12, end: 12).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+
+    _controller.repeat(reverse: true);
   }
 
   @override
@@ -40,39 +49,67 @@ class _SplashScreenState extends State<SplashScreen>
     super.dispose();
   }
 
+  Widget _floatingShield({
+    required double top,
+    double? bottom,
+    double? left,
+    double? right,
+    required double angle,
+    required double size,
+  }) {
+    return Positioned(
+      top: bottom == null ? top : null,
+      bottom: bottom,
+      left: left,
+      right: right,
+      child: AnimatedBuilder(
+        animation: _floatAnimation,
+        builder: (context, child) {
+          return Transform.translate(
+            offset: Offset(0, _floatAnimation.value),
+            child: child,
+          );
+        },
+        child: Transform.rotate(
+          angle: angle,
+          child: Icon(
+            Icons.shield_rounded,
+            size: size,
+            color: Colors.white.withOpacity(0.1),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.primary,
       body: Stack(
         children: [
-          // 🔹 Multiple translucent shield icons
-          Positioned(
+          // 🔹 Floating background shields (same positions, just animated)
+          _floatingShield(
             top: -30,
             left: -20,
-            child: Transform.rotate(
-              angle: -0.2,
-              child: Icon(Icons.shield_rounded, size: 180, color: Colors.white.withOpacity(0.1)),
-            ),
+            angle: -0.2,
+            size: 180,
           ),
-          Positioned(
+          _floatingShield(
+            top: 0,
             bottom: -50,
             right: -40,
-            child: Transform.rotate(
-              angle: 0.3,
-              child: Icon(Icons.shield_rounded, size: 200, color: Colors.white.withOpacity(0.1)),
-            ),
+            angle: 0.3,
+            size: 200,
           ),
-          Positioned(
+          _floatingShield(
             top: 150,
             right: -30,
-            child: Transform.rotate(
-              angle: -0.1,
-              child: Icon(Icons.shield_rounded, size: 100, color: Colors.white.withOpacity(0.1)),
-            ),
+            angle: -0.1,
+            size: 100,
           ),
 
-          // 🔹 Center content
+          // 🔹 Center content (UNCHANGED UI)
           Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,

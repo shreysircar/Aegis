@@ -90,9 +90,13 @@ import '../features/auth/models/user_model.dart';
 
 class AuthService {
   // 🔹 Updated for Flutter Web / Chrome
-  final String baseUrl = 'http://localhost:4000/api/auth'; 
+  //final String baseUrl = 'http://localhost:4000/api/auth'; 
+  //thisis for physical device (android mobile)
+    final String baseUrl = 'http://192.168.1.11:4000/api/auth'; 
 
   Future<String> login(String email, String password) async {
+      print("LOGIN FUNCTION CALLED");
+  print("Base URL: $baseUrl");
     final res = await http.post(
       Uri.parse('$baseUrl/login'),
       headers: {'Content-Type': 'application/json'},

@@ -21,7 +21,8 @@ class AegisApp extends StatelessWidget {
       title: 'Aegis',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      initialRoute: '/',
+      //initialRoute: '/',
+      home: const SplashScreen(),
       routes: AppRoutes.routes,
     );
   }

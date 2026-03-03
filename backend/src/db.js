@@ -6,7 +6,7 @@ dotenv.config();
 export const pool = new pg.Pool({
   user: "neondb_owner",
   password: "npg_ntxo3U7bDuHm",
-  host: "ep-plain-lab-adgdswk6-pooler.c-2.us-east-1.aws.neon.tech",
+  host: "ep-plain-lab-adgdswk6-pooler.c-2.us-east-1.aws.neon.tech", 
   database: "neondb",
   port: 5432,
   ssl: { rejectUnauthorized: false } // required for Neon
