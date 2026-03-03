@@ -15,33 +15,32 @@ class _SplashScreenState extends State<SplashScreen>
   late Animation<double> _scaleAnimation;
   late Animation<double> _fadeAnimation;
   late Animation<double> _floatAnimation;
+@override
+void initState() {
+  super.initState();
+print("SPLASH INIT CALLED");
+  _controller =
+      AnimationController(vsync: this, duration: const Duration(seconds: 20));
 
-  @override
-  void initState() {
-    super.initState();
+  _scaleAnimation =
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack);
 
-    // Navigate to login after 5 seconds (UNCHANGED)
-    Timer(const Duration(seconds: 5), () {
+  _fadeAnimation =
+      CurvedAnimation(parent: _controller, curve: Curves.easeIn);
+
+  _floatAnimation = Tween<double>(begin: -12, end: 12).animate(
+    CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+  );
+
+  _controller.repeat(reverse: true);
+
+  // Safer delayed navigation
+  Future.delayed(const Duration(seconds: 5), () {
+    if (mounted) {
       Navigator.pushReplacementNamed(context, '/login');
-    });
-
-    // Increased duration to 3 seconds (smoother feel)
-    _controller =
-        AnimationController(vsync: this, duration: const Duration(seconds: 3));
-
-    _scaleAnimation =
-        CurvedAnimation(parent: _controller, curve: Curves.easeOutBack);
-
-    _fadeAnimation =
-        CurvedAnimation(parent: _controller, curve: Curves.easeIn);
-
-    // Subtle floating animation for background shields
-    _floatAnimation = Tween<double>(begin: -12, end: 12).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
-
-    _controller.repeat(reverse: true);
-  }
+    }
+  });
+}
 
   @override
   void dispose() {
